@@ -1,0 +1,5 @@
+Log started on 2020_06_25_130754
+frogStateActionFileLogger.,
+Simulation time (sec),CoM_X,CoM_Y,Theta,dCoM_X_dt,dCoM_Y_dt,dTheta_dt,act_start_1,act_pulse_1,act_start_2,act_pulse_2,act_start_3,act_pulse_3,act_start_4,act_pulse_4,
+0.0,0.0,0.0,141.116,-0.0158734,0.00228437,33.13,0.175,0.054,0.321,0.122,0.133,0.045,0.231,0.077
+1.0,0.012294,0.021055,240.69,0.0355458,-0.0140993,-104.204,0.175,0.054,0.321,0.122,0.133,0.045,0.231,0.077
