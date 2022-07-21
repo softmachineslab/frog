@@ -1,3 +1,9 @@
+"""
+    Code for running planning and control software using DER library for soft robot path following. 
+    Paper under review
+    Copyright Soft Machines Lab 2022
+    (license TBD)
+"""
 from re import S
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,14 +15,14 @@ import time
 
 
 class Robot():
-    def __init__(self, x, y, theta, xdot=0, ydot=0, thetadot=0, state_queue = [], mode = 'brute'):
+    def __init__(self, model, x, y, theta, xdot=0, ydot=0, thetadot=0, state_queue = [], mode = 'brute'):
         
         # set of possible actions
         self.actions = ['A','B','C','D','E','F','G','H','I']
 
         # model from DER simulations - 12 elements per simulation
         # ['x0','y0','t0','xdot0','ydot0','tdot0','xf','yf','tf','xdotf','ydotf','tdotf']
-        self.model = np.load('simfrog_numpy_data_2022-01-26.npy')
+        self.model = np.load(model)
         self.model[:,8] = self.model[:,8]*np.pi/180
         self.model[:,-1] = self.model[:,-1]*np.pi/180
         #self.model = np.load('simfrog_numpy_data_2021-11-30.npy')
@@ -144,7 +150,7 @@ class FrogPlanner():
     def plan(self):
         path = self.path
         
-        for i in range(100000):
+        for i in range(500):
             state = np.zeros((9,6))
             for j in range(9):
                 self.frog.poll()

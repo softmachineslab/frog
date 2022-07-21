@@ -2,6 +2,13 @@
 
 # This data logger adapted from brittlestar-ros to save april tag / states as well as command outputs.
 
+"""
+    Code for running planning and control software using DER library for soft robot path following. 
+    Paper under review
+    Copyright Soft Machines Lab 2022
+    (license TBD)
+"""
+
 # packages to communicate with the OS and save files
 import sys
 from datetime import date

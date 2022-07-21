@@ -1,3 +1,10 @@
+"""
+    Code for running planning and control software using DER library for soft robot path following. 
+    Paper under review
+    Copyright Soft Machines Lab 2022
+    (license TBD)
+"""
+
 from importlib.resources import path
 import sys
 
@@ -5,7 +12,7 @@ from multiprocessing import Process, Queue, Pipe
 
 import april_tracking as vision
 
-import new_planner as control
+import planner as control
 
 import cv2
 
@@ -30,10 +37,10 @@ import numpy as np
 # Specify paths based on pixels instead of in world space
 
 
-def start_robot(device_name, calibration = False, mode = 'brute', shape = 'li', depth = 3):
+def start_robot(device_name, save_directory, calibration = False, mode = 'brute', shape = 'li', depth = 3, model='simfrog_numpy_data_2022-01-26.npy'):
     
 
-    video_save_directory = "/media/Zach/Shared/MEGAsync/SML/sea_star/Frog"
+    video_save_directory = save_directory
     datalogger = cv_datalogger.CVDataLogger()
     # add a folder tree for better organization
     video_save_directory = os.path.join(video_save_directory, cv_datalogger.get_ymdh_folder_path())
@@ -70,7 +77,7 @@ def start_robot(device_name, calibration = False, mode = 'brute', shape = 'li', 
 
     path_queue.put(path.get_curve())
     path.plot()
-    frog = control.Robot(state[0],state[1],state[2],state[3],state[4],state[5],state_queue, mode)
+    frog = control.Robot(model,state[0],state[1],state[2],state[3],state[4],state[5],state_queue, mode)
 
     planner = control.FrogPlanner(frog, path, serial_port,depth)
 
@@ -99,7 +106,7 @@ def start_robot(device_name, calibration = False, mode = 'brute', shape = 'li', 
                 last_action = last_action_queue.get_nowait()
             except Empty:
                 last_action = last_action
-        total_cost, costs = path.cost(np.array(state).reshape(1,6))
+        total_cost, _ = path.cost(np.array(state).reshape(1,6))
         state.append(total_cost)
         state.extend(costs)
         state.append(last_action)
@@ -110,8 +117,17 @@ def start_robot(device_name, calibration = False, mode = 'brute', shape = 'li', 
 
 if __name__ == '__main__':
     try:
-        # the 0-th arg is the name of the file itself, so we want the 1st.
-        start_robot('/dev/ttyACM0', False, 'brute', 'el', 1)
+        # to run the program, call main from a terminal with the necessary arguments
+        # argv[1] T/F if there is a calibration grid. The code works well without it, so I use 'False'
+        # argv[2] Planner uses nearest neighbor ('brute') or locally weighted regression ('lwr') to determine the next state
+        # argv[3] Type of path to follow. Options are line 'li', sinusoid 'si', and ellipsoid 'el'
+        # argv[4] Depth of tree of the planner (integer). Works well with smaller values (e.g. 2)
+        # argv[5] is the numpy file containing the transition models from the DER library (e.g. 'simfrog_numpy_data_2022-01-26.npy')
+        # argv[6] is the save directory for video and data
+        # example:
+        # python3 main.py 'False' 'brute' 'si' 1 'simfrog_numpy_data_2022-01-26.npy' 'data/my_save_directory'
+        start_robot('/dev/ttyACM0', sys.argv[6], sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+        
     except KeyboardInterrupt:
         # why is this here?
         pass

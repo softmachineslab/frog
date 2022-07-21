@@ -1,34 +1,28 @@
-#!/usr/bin/python3
+"""
+    Code for running planning and control software using DER library for soft robot path following. 
+    Paper under review
+    Copyright Soft Machines Lab 2022
+    (license TBD)
+"""
 
 import sys
 import serial
 import time
 from multiprocessing import Process
 
-# This script eliminates Zach's hack for IMU sensor readings, just basic I/O.
 
 # The primary helper function here opens the serial device,
 # and writes to it from raw_input.
 def flush(serial_port):
     serial_port.reset_input_buffer()
     serial_port.reset_output_buffer()
-    time.sleep(2)
-    print("Serial port buffers flushed.")
+    time.sleep(5)
 
 
 def tx_to_serial(device_name):
     print("Running serial_tx_cmdline node with device: " + device_name)
-    successful_open = False
-    while not successful_open:
-        try:
-            serial_port = serial.Serial(port=device_name, baudrate=115200, timeout=1,
+    serial_port = serial.Serial(port=device_name, baudrate=115200, timeout=1,
                                 exclusive=False)
-            successful_open = True
-        except serial.serialutil.SerialException as se:
-            print("Serial port not ready, received exception:")
-            print(se.strerror)
-            print("Retrying...")
-            time.sleep(2)
     flush(serial_port)
 
     while True:
@@ -48,24 +42,14 @@ def tx_to_serial(device_name):
 """
 
 
-def echo_to_terminal(device_name):
+def echo_to_terminal(device_name,sender):
     print("Running serial_rx_echo node with device: " + device_name)
-    # If the device isn't ready, keep trying.
-    successful_open = False
-    while not successful_open:
-        try:
-            serial_port = serial.Serial(port=device_name, baudrate=115200, timeout=1)
-            successful_open = True
-        except serial.serialutil.SerialException as se:
-            print("Serial port not ready, received exception:")
-            print(se.strerror)
-            print("Retrying...")
-            time.sleep(2)
+    serial_port = serial.Serial(port=device_name, baudrate=115200, timeout=1, xonxoff = True)
     flush(serial_port)
     print("Opened port, now echoing. Ctrl-C to stop.")
 
-    # now = time.strftime('%d-%m-%Y_%H:%M:%S')
-    # filename = f"IMU-output_{now}.csv"
+    now = time.strftime('%d-%m-%Y_%H:%M:%S')
+    filename = f"IMU-output_{now}.csv"
     while True:
         # blocking-ly read from the port.
         # Since this is a blocking read, we CANNOT read and write at the same time...
@@ -85,10 +69,15 @@ def echo_to_terminal(device_name):
                 # Echo the input back to the terminal.
                 print(from_microcontroller)
                 # Parse string to find if it is from the IMU and ouput to our csv
-                # if from_microcontroller[0:4] == "Cent" and from_microcontroller[9] == "Q":
-                #     with open(filename,"a") as f:
-                #         writer = csv.writer(f,delimiter=",")
-                #         writer.writerow([from_microcontroller])
+                if len(from_microcontroller) > 9:
+                    if from_microcontroller[0:4] == "Cent" and from_microcontroller[9] == "Q":
+                        with open(filename,"a") as f:
+                            writer = csv.writer(f,delimiter=",")
+                            writer.writerow([from_microcontroller])
+
+                    if from_microcontroller[0:4] == "Cent" and from_microcontroller[9:18] == "EMERGENCY":
+                        sender.send([1])
+                        print("sent!")
 
         except KeyboardInterrupt:
             # Nicely shut down this script.
@@ -98,12 +87,6 @@ def echo_to_terminal(device_name):
 
             # the main function: just call the helper, while parsing the serial port path.
 if __name__ == '__main__':
-    print("multi_serial_comms_basic.py\n 2020 Soft Machines Lab\n Basic serial I/O from UART.")
-    # p2 = Process(target=echo_to_terminal, args=(sys.argv[1],))
-    # so we can run in vscode more easily: check if we were given an argument, if not, hardcode
-    devname = "/dev/ttyACM1"
-    if len(sys.argv) > 1:
-        devname = sys.argv[1]
-    p2 = Process(target=echo_to_terminal, args=(devname,))
+    p2 = Process(target=echo_to_terminal, args=(sys.argv[1],))
     p2.start()
-    tx_to_serial(devname)
+    tx_to_serial(sys.argv[1])

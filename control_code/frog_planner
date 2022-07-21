@@ -1,0 +1,4 @@
+#!/bin/bash
+
+python3 src/main.py 'False' 'brute' 'si' 1 'data/simfrog_numpy_data_2022-01-26.npy' '/data/results'
+

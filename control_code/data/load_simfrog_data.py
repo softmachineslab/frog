@@ -1,5 +1,11 @@
 #!/usr/bin/python3
 
+"""
+    Code for importing DER library from Drew's data. 
+    Paper under review
+    Copyright Soft Machines Lab 2022
+    (license TBD)
+"""
 # Demonstration of loading the simFrogDER data and organizing into action sets. 
 
 import numpy as np

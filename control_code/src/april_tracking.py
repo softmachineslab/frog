@@ -1,3 +1,10 @@
+"""
+    Code for running planning and control software using DER library for soft robot path following. 
+    Paper under review
+    Copyright Soft Machines Lab 2022
+    (license TBD)
+"""
+
 from contextlib import contextmanager
 from multiprocessing import Process, Queue
 from queue import Empty
